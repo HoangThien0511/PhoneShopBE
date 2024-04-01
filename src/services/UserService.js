@@ -39,45 +39,71 @@ const createUser=(newUser)=>{
     })
 }
 
-const loginUser=(userLogin)=>{
-    return new Promise(async (resolve, reject)=>{
-        const{name,email,password,confirmPassword,phone}=userLogin
+const loginUser = (userLogin) => {
+    return new Promise(async (resolve, reject) => {
+        const { name, email, password, confirmPassword, phone } = userLogin;
 
-        try{
-            const checkUser=await User.findOne({
-                email:email
-            })
-            if(checkUser === null){
+        try {
+            const checkUser = await User.findOne({ email: email });
+            if (checkUser === null) {
                 resolve({
-                    status:'Ok',
-                    message:'The user is not defined'
-                })
-            }            
-            const comparePassword=bcrypt.compareSync(password,checkUser.password)
-            if(!comparePassword){
-                resolve({
-                    status:'Ok',
-                    message:'The password or user is incorrect'
-                })
+                    status: 'Ok',
+                    message: 'The user is not defined'
+                });
             }
-                const accessToken=generalAccessToken({id:checkUser.id, isAdmin:checkUser.isAdmin})
-                const refreshToken=generalRefreshToken({id:checkUser.id, isAdmin:checkUser.isAdmin})
-                console.log(accessToken)
+            const comparePassword = bcrypt.compareSync(password, checkUser.password);
+            if (!comparePassword) {
                 resolve({
-                    status:'OK',
-                    message:'Success',
-                    accessToken:accessToken,
-                    refreshToken:refreshToken
-                })
+                    status: 'Ok',
+                    message: 'The password or user is incorrect'
+                });
             }
-                
-        catch(e){
+            const access_token = generalAccessToken({ id: checkUser.id, isAdmin: checkUser.isAdmin });
+            const refresh_token = generalRefreshToken({ id: checkUser.id, isAdmin: checkUser.isAdmin });
+            console.log(access_token, refresh_token); // Logging tokens here
+            resolve({
+                status: 'OK',
+                message: 'Success',
+                access_token: access_token,
+                refresh_token: refresh_token
+            });
+        } catch (e) {
             reject(e);
         }
-    })
-}
+    });
+};
+
+const updateUser = (id,data) => {
+    return new Promise(async (resolve, reject) => {
+        
+
+        try {
+            const checkUser = await User.findOne({
+                _id:id
+            });
+            console.log(checkUser)
+            if(checkUser===null){
+                resolve({
+                    status: 'Ok',
+                message: 'The user is not defined',
+                })
+            }
+            const updatedUser = await User.findByIdAndUpdate(id,data,{new:true})
+            console.log(updatedUser)
+            resolve({
+                status: 'OK',
+                message: 'Success',
+                data:updatedUser 
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
 
 module.exports = {
     createUser,
-    loginUser
+    loginUser,
+    updateUser
 }
